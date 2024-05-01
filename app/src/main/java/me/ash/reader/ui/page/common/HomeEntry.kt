@@ -30,7 +30,7 @@ import me.ash.reader.ui.ext.isFirstLaunch
 import me.ash.reader.ui.page.home.HomeViewModel
 import me.ash.reader.ui.page.home.feeds.FeedsPage
 import me.ash.reader.ui.page.home.feeds.subscribe.SubscribeViewModel
-import me.ash.reader.ui.page.home.flow.FlowPage
+import me.ash.reader.ui.page.home.flow.FlowRoute
 import me.ash.reader.ui.page.home.reading.ReadingPage
 import me.ash.reader.ui.page.settings.SettingsPage
 import me.ash.reader.ui.page.settings.accounts.AccountDetailsPage
@@ -95,12 +95,12 @@ fun HomeEntry(
         )
 
         // This is finally
-        navController.currentBackStackEntryFlow.collectLatest {
+        homeViewModel.homeUiState.collectLatest {
             Log.i("RLog", "currentBackStackEntry: ${navController.currentDestination?.route}")
             // Animation duration takes 310 ms
             delay(310L)
             isReadingPage =
-                navController.currentDestination?.route == "${RouteName.READING}/{articleId}"
+                navController.currentDestination?.route == RouteName.FLOW && it.isArticleOpen
         }
     }
 
@@ -124,9 +124,7 @@ fun HomeEntry(
             navController.navigate(RouteName.FLOW) {
                 launchSingleTop = true
             }
-            navController.navigate("${RouteName.READING}/${openArticleId}") {
-                launchSingleTop = true
-            }
+            homeViewModel.selectArticle(openArticleId)
             openArticleId = ""
         }
     }
@@ -161,13 +159,10 @@ fun HomeEntry(
                 )
             }
             forwardAndBackwardComposable(route = RouteName.FLOW) {
-                FlowPage(
+                FlowRoute(
                     navController = navController,
-                    homeViewModel = homeViewModel,
+                    homeViewModel = homeViewModel
                 )
-            }
-            forwardAndBackwardComposable(route = "${RouteName.READING}/{articleId}") {
-                ReadingPage(navController = navController, homeViewModel = homeViewModel)
             }
 
             // Settings
