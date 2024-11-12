@@ -42,6 +42,7 @@ import androidx.work.WorkInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.ash.reader.R
+import me.ash.reader.domain.model.article.ArticleFlowItem
 import me.ash.reader.domain.model.article.ArticleWithFeed
 import me.ash.reader.domain.model.general.Filter
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListDateStickyHeader
@@ -67,7 +68,9 @@ import me.ash.reader.ui.page.home.HomeViewModel
 )
 @Composable
 fun FlowPage(
-    navController: NavHostController,
+    onNavigateToFeeds: () -> Unit,
+    readingArticleId: String?,
+    onOpenArticle: (articleId: String) -> Unit,
     flowViewModel: FlowViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel,
 ) {
@@ -193,6 +196,20 @@ fun FlowPage(
         }
     }
 
+    LaunchedEffect(readingArticleId) {
+        if (readingArticleId != null) {
+            val item =
+                listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == readingArticleId }
+
+            val index = item?.index
+                ?: pagingItems.itemSnapshotList.indexOfFirst { it is ArticleFlowItem.Article && it.articleWithFeed.article.id == readingArticleId }
+
+            if (index != -1) {
+                listState.animateScrollToItem(index, scrollOffset = -100)
+            }
+        }
+    }
+
     BackHandler(onSearch) {
         onSearch = false
     }
@@ -207,13 +224,7 @@ fun FlowPage(
                 tint = MaterialTheme.colorScheme.onSurface
             ) {
                 onSearch = false
-                if (navController.previousBackStackEntry == null) {
-                    navController.navigate(RouteName.FEEDS) {
-                        launchSingleTop = true
-                    }
-                } else {
-                    navController.popBackStack()
-                }
+                onNavigateToFeeds()
             }
         },
         actions = {
@@ -333,16 +344,14 @@ fun FlowPage(
                     }
                     ArticleList(
                         pagingItems = pagingItems,
+                        readingArticleId = readingArticleId,
                         diffMap = flowViewModel.diffMap,
                         isShowFeedIcon = articleListFeedIcon.value,
                         isShowStickyHeader = articleListDateStickyHeader.value,
                         articleListTonalElevation = articleListTonalElevation.value,
-                        isSwipeEnabled = { listState.isScrollInProgress },
                         onClick = {
                             onSearch = false
-                            navController.navigate("${RouteName.READING}/${it.article.id}") {
-                                launchSingleTop = true
-                            }
+                            onOpenArticle(it.article.id)
                         },
                         onToggleStarred = onToggleStarred,
                         onToggleRead = onToggleRead,

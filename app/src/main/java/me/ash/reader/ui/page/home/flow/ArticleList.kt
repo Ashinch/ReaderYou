@@ -20,7 +20,7 @@ fun LazyListScope.ArticleList(
     isShowFeedIcon: Boolean,
     isShowStickyHeader: Boolean,
     articleListTonalElevation: Int,
-    isSwipeEnabled: () -> Boolean = { false },
+    readingArticleId: String?,
     isMenuEnabled: Boolean = true,
     onClick: (ArticleWithFeed) -> Unit = {},
     onToggleStarred: (ArticleWithFeed) -> Unit = { },
@@ -43,10 +43,10 @@ fun LazyListScope.ArticleList(
                     val article = item.articleWithFeed.article
                     SwipeableArticleItem(
                         articleWithFeed = item.articleWithFeed,
+                        isHighlighted = readingArticleId == item.articleWithFeed.article.id,
                         isUnread = diffMap[article.id]?.isUnread ?: article.isUnread,
                         articleListTonalElevation = articleListTonalElevation,
                         onClick = onClick,
-                        isSwipeEnabled = isSwipeEnabled,
                         isMenuEnabled = isMenuEnabled,
                         onToggleStarred = onToggleStarred,
                         onToggleRead = onToggleRead,
@@ -74,10 +74,10 @@ fun LazyListScope.ArticleList(
                         val article = item.articleWithFeed.article
                         SwipeableArticleItem(
                             articleWithFeed = item.articleWithFeed,
+                            isHighlighted = readingArticleId == item.articleWithFeed.article.id,
                             isUnread = diffMap[article.id]?.isUnread ?: article.isUnread,
                             articleListTonalElevation = articleListTonalElevation,
                             onClick = onClick,
-                            isSwipeEnabled = isSwipeEnabled,
                             isMenuEnabled = isMenuEnabled,
                             onToggleStarred = onToggleStarred,
                             onToggleRead = onToggleRead,

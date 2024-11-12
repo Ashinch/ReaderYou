@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -90,6 +91,7 @@ private const val TAG = "ArticleItem"
 fun ArticleItem(
     modifier: Modifier = Modifier,
     articleWithFeed: ArticleWithFeed,
+    isHighlighted: Boolean = false,
     isUnread: Boolean = articleWithFeed.article.isUnread,
     onClick: (ArticleWithFeed) -> Unit = {},
     onLongClick: (() -> Unit)? = null
@@ -106,6 +108,7 @@ fun ArticleItem(
         dateString = article.dateString,
         imgData = article.img,
         isStarred = article.isStarred,
+        isHighlighted = isHighlighted,
         isUnread = isUnread,
         onClick = { onClick(articleWithFeed) },
         onLongClick = onLongClick
@@ -125,6 +128,7 @@ fun ArticleItem(
     imgData: Any? = null,
     isStarred: Boolean = false,
     isUnread: Boolean = false,
+    isHighlighted: Boolean = false,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null
 ) {
@@ -139,21 +143,25 @@ fun ArticleItem(
         modifier = modifier
             .padding(horizontal = 12.dp)
             .clip(Shape20)
+            .background(if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
             .padding(horizontal = 12.dp, vertical = 12.dp)
             .alpha(
-                when (articleListReadIndicator) {
-                    FlowArticleReadIndicatorPreference.None -> 1f
+                if (isHighlighted) 1f else {
+                    when (articleListReadIndicator) {
 
-                    FlowArticleReadIndicatorPreference.AllRead -> {
-                        if (isUnread) 1f else 0.5f
-                    }
+                        FlowArticleReadIndicatorPreference.None -> 1f
 
-                    FlowArticleReadIndicatorPreference.ExcludingStarred -> {
-                        if (isUnread || isStarred) 1f else 0.5f
+                        FlowArticleReadIndicatorPreference.AllRead -> {
+                            if (isUnread) 1f else 0.5f
+                        }
+
+                        FlowArticleReadIndicatorPreference.ExcludingStarred -> {
+                            if (isUnread || isStarred) 1f else 0.5f
+                        }
                     }
                 }
             ),
@@ -281,13 +289,13 @@ private const val SwipeActionDelay = 300L
 @Composable
 fun SwipeableArticleItem(
     articleWithFeed: ArticleWithFeed,
+    isHighlighted: Boolean = false,
     isUnread: Boolean = articleWithFeed.article.isUnread,
     articleListTonalElevation: Int = 0,
     onClick: (ArticleWithFeed) -> Unit = {},
-    isSwipeEnabled: () -> Boolean = { false },
     isMenuEnabled: Boolean = true,
-    onToggleStarred: (ArticleWithFeed) -> Unit = { },
-    onToggleRead: (ArticleWithFeed) -> Unit = { },
+    onToggleStarred: (ArticleWithFeed) -> Unit = {},
+    onToggleRead: (ArticleWithFeed) -> Unit = {},
     onMarkAboveAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onMarkBelowAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onShare: ((ArticleWithFeed) -> Unit)? = null,
@@ -338,9 +346,10 @@ fun SwipeableArticleItem(
         ) {
             ArticleItem(
                 articleWithFeed = articleWithFeed,
+                isHighlighted = isHighlighted,
                 isUnread = isUnread,
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             )
             with(articleWithFeed.article) {
                 if (isMenuEnabled) {
